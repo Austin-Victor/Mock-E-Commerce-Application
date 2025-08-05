@@ -2,8 +2,7 @@ from utils import create_data_dir
 from data import load_inventory
 from auth import sign_in, sign_up
 from wallet import fund_wallet
-from purchase import purchase
-from state import user
+from store import purchase
 
 def run(user: list) -> None:
     """
@@ -29,6 +28,7 @@ def run(user: list) -> None:
         if choice == '1':
             fund_wallet(user)
         elif choice == '2':
+            load_inventory()
             purchase(user)
         elif choice == '3':
             break
@@ -58,7 +58,6 @@ def main() -> None:
         None: This function runs indefinitely until the user chooses to exit the application.
     """
     create_data_dir()
-    load_inventory()
     while True:
         print("\nWelcome")
         print("1. Sign In")
