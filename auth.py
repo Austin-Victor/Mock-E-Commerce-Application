@@ -1,5 +1,6 @@
-from utils import generate_password, password_valid
-from data import find_user, load_accounts, save_accounts
+import utils
+import data
+import bcrypt
 
 def sign_up() -> None:
     """
@@ -27,24 +28,25 @@ def sign_up() -> None:
         None: This function does not return any value. It either creates an
               account or prints an error message.
     """
-    username = input("Enter username: ")
+    username = input("Enter username: ").title()
     email = input("Enter email: ")
-    if find_user(username) or find_user(email):
+    if data.find_user(username) or data.find_user(email):
         print("Username or Email already exists.")
         return
 
     choice = input("Generate password? (y/n): ").lower()
     if choice == 'y':
-        password = generate_password()
+        password = utils.generate_password()
         print(f"Generated Password: {password}")
     else:
         password = input("Enter password: ")
-        while not password_valid(password):
+        while not utils.password_valid(password):
             print("Invalid password format. Try again.")
             password = input("Enter password: ")
-
+    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    
     with open('data/accounts.txt', 'a') as f:
-        f.write(f"{username},{email},{password},0.00\n")
+        f.write(f"{username},{email},{hashed_pw.decode()},0.00\n")
     print("Account created successfully!")
 
 def sign_in() -> list | None:
@@ -69,15 +71,20 @@ def sign_in() -> list | None:
                       the user's account details (e.g., `[username, email, password, balance]`).
                       Returns `None` if the account is not found or the password is incorrect.
     """
-    from state import user
-    identifier = input("Enter username or email: ")
-    acc = find_user(identifier)
+    identifier = input("Enter username or email: ").title()
+    acc = data.find_user(identifier)
     if not acc:
         print("Account not found.")
         return None
-    password = input("Enter password: ")
-    if acc[2] != password:
-        print("Incorrect password.")
-        return None
+    i = 0
+    while i < 3:
+        i = i + 1
+        password = input("Enter password: ")
+        if not bcrypt.checkpw(password.encode(), acc[2].encode()):
+            print(f"Incorrect password. {3-i} more tries available")
+            if i == 3:
+                return None
+            continue
+        break
     print(f"Welcome, {acc[0]}!")
     return acc
