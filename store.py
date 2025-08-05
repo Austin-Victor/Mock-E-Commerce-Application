@@ -1,64 +1,63 @@
 import re
-from utils import load_accounts, save_accounts
+import data as d
+import time
 
-def search_inventory(query: str, inventory: dict) -> list:
+def search_inventory(query: str) -> list:
     """
-    `search_inventory` is a function that searches the inventory for items matching all terms in a given query.
+    `search_inventory` is a function that searches the global inventory for items matching all terms in a given query.
 
-    This function takes a search query string, splits it into individual terms,
-    and then compiles regular expressions for each term to perform case-insensitive
-    matching. It iterates through the inventory items and returns a list of
-    items that contain all the search terms. The results are sorted alphabetically.
+    This function processes a search query, breaking it into individual terms.
+    It then uses these terms to find items in the `inventory` (expected to be
+    a globally accessible dictionary or passed implicitly). An item matches
+    if its name contains all the search terms, irrespective of case. The
+    results are returned without specific sorting in this version.
 
     Args:
         query (str): The search string, which can contain multiple terms
-                     separated by spaces.
-        inventory (dict): A dictionary where keys are item names (strings)
-                          and values are their prices.
+                     separated by spaces (e.g., "dell laptop").
 
     Returns:
-        list: A sorted list of strings, where each string is an item name
-              from the inventory that matches all search terms.
-              Returns an empty list if no matches are found.
+        list: A list of strings, where each string is an item name from
+              the inventory that contains all the search terms. Returns
+              an empty list if no matches are found.
     """
     terms = query.split()
     patterns = [re.compile(re.escape(term), re.IGNORECASE) for term in terms]
     results = []
-    for item in inventory:
+    for item in d.inventory:
         if all(p.search(item) for p in patterns):
             results.append(item)
-    results.sort()  # Alphabetically sorted results
     return results
 
-def purchase(user: list, inventory: dict) -> None:
+def purchase(user: list) -> None:
     """
-    `purchase` is a function that manages the user's shopping experience, including searching, viewing the cart, and checkout.
+    `purcahse` is a function that manages the user's shopping experience, allowing them to search, add to cart, and checkout.
 
-    This function provides an interactive interface for a user to browse and purchase items
-    from an inventory. It allows users to:
-     Search for items using keywords.
-     Add selected items to a shopping cart.
-     View the current contents of their cart.
-     Proceed to checkout, where the total cost is calculated and deducted from the
-       user's balance if sufficient funds are available.
-     Exit the purchasing interface.
-
-    Upon successful checkout, the user's balance is updated in their account data
-    and saved.
+    This function provides an interactive console interface for users to browse
+    and purchase items. It presents a menu with options to:
+    Search: Find items in the `inventory` using a keyword query.
+        Matching items are displayed along with their prices. Users can then
+        choose to add an item to their cart by entering its corresponding number.
+    View Cart: Display all items currently in the shopping cart and their prices.
+    Checkout: Calculate the total cost of items in the cart. If the user
+        has sufficient funds in their account balance, the total is deducted,
+        the purchase is confirmed, the cart is cleared, and the user's updated
+        balance is saved to the accounts data (via `load_accounts` and
+        `save_accounts`, which are assumed to be externally defined). If funds
+        are insufficient, a message is displayed.
+    Exit: Terminate the purchasing session.
 
     Args:
-        user (list): A list representing the user's account information.
-                     It is expected to be in the format:
-                     [username, password, account_number, balance, ...]
-                     where index 3 holds the current balance as a string.
-        inventory (dict): A dictionary where keys are item names (strings)
-                          and values are their prices (numeric).
+        user (list): A list representing the authenticated user's account data.
+                     It is expected to contain the user's balance at index `3`
+                     (e.g., `user[3] = "150000.0"`). The username is expected
+                     at index `0` (e.g., `user[0] = "john_doe"`).
 
     Returns:
-        None: This function primarily interacts with the user and modifies
-              the user's balance in place within the `user` list. It also
-              calls `load_accounts()` and `save_accounts()` (assumed to be
-              defined elsewhere) to persist changes to the user's account.
+        None: This function primarily interacts with the user via print statements
+              and input prompts. It modifies the `user` list in place to update
+              the balance and implicitly relies on `load_accounts` and
+              `save_accounts` to persist these changes.
     """
     cart = []
     while True:
@@ -66,49 +65,50 @@ def purchase(user: list, inventory: dict) -> None:
         choice = input("Enter choice: ")
         if choice == '1':
             query = input("Search: ")
-            results = search_inventory(query, inventory)
+            results = search_inventory(query)
             if results:
                 for i, item in enumerate(results, 1):
-                    print(f"{i}. {item} - NGN {inventory[item]}")
-                add = input("Add item number to cart (or press Enter to skip): ")
-                if add:
-                    try:
-                        index = int(add) - 1
-                        if 0 <= index < len(results):
+                    print(f"\t{i}. {item} - NGN {d.inventory[item]}")
+                    time.sleep(0.1)
+                time.sleep(0.6)
+                while True:
+                    add = input("Add item number to cart (or press Enter to skip): ")
+                    if add:
+                        try:
+                            index = int(add) - 1
                             cart.append(results[index])
-                        else:
+                        except:
                             print("Invalid selection.")
-                    except:
-                        print("Invalid selection.")
+                        continue
+                    break
             else:
                 print("No items found.")
 
         elif choice == '2':
             print("\nCart:")
-            if not cart:
-                print("Your cart is empty.")
             for item in cart:
-                print(f"- {item} - NGN {inventory[item]}")
+                print(f"- {item} - NGN {d.inventory[item]}")
+            print(f"Total: {sum(d.inventory[item] for item in cart)}")
 
         elif choice == '3':
-            if not cart:
-                print("Cart is empty.")
-                continue
-            total = sum(inventory[item] for item in cart)
-            print(f"Total: NGN {total}")
-            if float(user[3]) >= total:
-                user[3] = str(float(user[3]) - total)
-                print("Purchase successful!")
-                cart.clear()
-                accounts = load_accounts()
-                for acc in accounts:
-                    if acc[0] == user[0]:
-                        acc[3] = user[3]
-                save_accounts(accounts)
-            else:
-                print("Insufficient balance.")
-
+            checkout(user, cart)
         elif choice == '4':
             break
         else:
-            print("Invalid choice.")
+            print("Invalid Selection")
+
+def checkout(user: list, cart: list):
+    total = sum(d.inventory[item] for item in cart)
+    print(f"Total: NGN {total}")
+    if float(user[3]) >= total:
+        user[3] = str(float(user[3]) - total)
+        print("Purchase successful!")
+        print(f"Updated Balance: {user[3]}")
+        cart.clear()
+        accounts = d.load_accounts()
+        for acc in accounts:
+            if acc[0] == user[0]:
+                acc[3] = user[3]
+        d.save_accounts(accounts)
+    else:
+        print("Insufficient balance.")
