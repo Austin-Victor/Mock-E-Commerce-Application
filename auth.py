@@ -9,12 +9,12 @@ def sign_up() -> None:
     This function prompts the user to enter a desired username and email.
     It first checks if the entered username or email already exists in the
     system using `find_user()`. If either exists, an error message is displayed,
-    and the sign-up process is aborted.
+    and the sign-up process is aborted, going back to previous prompt.
 
     The user then has the option to either have a strong password automatically
     generated using `generate_password()` or to manually enter a password.
     If a manual password is chosen, it is validated against complexity rules
-    using `password_valid()` until a valid one is provided.
+    using `password_valid()` until a valid one is provided. The password is then hashed using bcrypt.
 
     Upon successful collection of valid credentials, the new account (username,
     email, password, and an initial balance of 0.00) is appended to the
