@@ -19,16 +19,25 @@ def fund_wallet(user: list) -> None:
         None: This function modifies the user's balance in place and
               saves the updated accounts data. It does not return any value.
     """
-    print("\nSelect amount to fund:")
-    options = [10000, 20000, 50000, 100000]
-    for i, amount in enumerate(options, 1):
-        print(f"{i}. NGN {amount}")
-    choice = int(input("Choice: "))
-    if 1 <= choice <= len(options):
-        user[3] = str(float(user[3]) + options[choice - 1])
+    fund_amount = int(input("Enter Amount to Fund: "))
+    if 100 <= fund_amount <= 10000000:
+        user[3] = str(float(user[3]) + fund_amount)
         accounts = load_accounts()
         for acc in accounts:
             if acc[0] == user[0]:
                 acc[3] = user[3]
         save_accounts(accounts)
         print("Wallet funded successfully!")
+        print(f"Updated balance: {float(accounts[accounts.index(user)][3]):,}")
+        
+def withdraw(user: list):
+    withdraw_amount = int(input("Enter Amount to Withdraw: "))
+    if 100 <= withdraw_amount <= 1000000:
+        user[3] = str(float(user[3]) - withdraw_amount)
+        accounts = load_accounts()
+        for acc in accounts:
+            if acc[0] == user[0]:
+                acc[3] = user[3]
+        save_accounts(accounts)
+        print("Withdraw successfull!")
+        print(f"Updated balance: {float(accounts[accounts.index(user)][3]):,}")

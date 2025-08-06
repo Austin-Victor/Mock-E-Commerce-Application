@@ -71,7 +71,7 @@ def sign_in() -> list | None:
                       the user's account details (e.g., `[username, email, password, balance]`).
                       Returns `None` if the account is not found or the password is incorrect.
     """
-    identifier = input("Enter username or email: ").title()
+    identifier = input("Enter username or email: ")
     acc = data.find_user(identifier)
     if not acc:
         print("Account not found.")

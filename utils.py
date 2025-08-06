@@ -50,7 +50,7 @@ def password_valid(p: str) -> bool:
     """
 
     return (
-        len(p) >= 16 and
+        len(p) >= 8 and
         re.search(r'[a-z]', p) and
         re.search(r'[A-Z]', p) and
         re.search(r'\d', p) and
@@ -74,6 +74,6 @@ def generate_password() -> str:
              complexity rules defined in `password_valid`.
     """
     while True:
-        p = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=16))
+        p = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=8))
         if password_valid(p):
             return p

@@ -1,8 +1,8 @@
-from utils import create_data_dir
-from data import load_inventory
-from auth import sign_in, sign_up
-from wallet import fund_wallet
-from store import purchase
+import utils
+import data
+import auth
+import wallet
+import store
 
 def run(user: list) -> None:
     """
@@ -23,14 +23,16 @@ def run(user: list) -> None:
     """
 
     while True:
-        print("\nRun Menu:\n1. Fund Wallet\n2. Purchase\n3. Exit")
+        print("\nRun Menu:\n1. Fund Wallet\n2. Purchase\n3. Withdraw\n4. Exit")
         choice = input("Choice: ")
         if choice == '1':
-            fund_wallet(user)
+            wallet.fund_wallet(user)
         elif choice == '2':
-            load_inventory()
-            purchase(user)
+            data.load_inventory()
+            store.purchase(user)
         elif choice == '3':
+            wallet.withdraw(user)
+        elif choice == '4':
             break
         else:
             print("Invalid input.")
@@ -57,7 +59,7 @@ def main() -> None:
     Returns:
         None: This function runs indefinitely until the user chooses to exit the application.
     """
-    create_data_dir()
+    utils.create_data_dir()
     while True:
         print("\nWelcome")
         print("1. Sign In")
@@ -65,11 +67,11 @@ def main() -> None:
         print("3. Exit")
         choice = input("Choice: ")
         if choice == '1':
-            logged_in_user = sign_in()
+            logged_in_user = auth.sign_in()
             if logged_in_user:
                 run(logged_in_user)
         elif choice == '2':
-            sign_up()
+            auth.sign_up()
         elif choice == '3':
             break
         else:

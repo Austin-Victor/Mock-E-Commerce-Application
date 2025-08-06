@@ -8,7 +8,7 @@ def purchase(user: list) -> None:
     """
     `purcahse` is a function that manages the user's shopping experience, allowing them to search, add to cart, and checkout.
     It presents a menu with options to:
-    `search`, `view Cart`, `checkout`, and `exit`
+    `search`, `add to cart`, `delete from cart`, `view Cart`, `checkout`, and `exit`
 
     Args:
         user (list): A list representing the authenticated user's account data.
@@ -107,7 +107,7 @@ def view_cart():
     """
     print("\nCart:")
     for item in cart:
-        print(f"- {item} - NGN {d.inventory[item]}")
+        print(f"{cart.index(item)+1}- {item} - NGN {d.inventory[item]}")
     print(f"Total: {sum(d.inventory[item] for item in cart):,}")
 
 def checkout(user: list):
@@ -134,7 +134,7 @@ def checkout(user: list):
     if float(user[3]) >= total:
         user[3] = str(float(user[3]) - total)
         print("Purchase successful!")
-        print(f"Updated Balance: {user[3]:,}")
+        print(f"Updated Balance: {float(user[3]):,}")
         cart.clear()
         
         accounts = d.load_accounts()

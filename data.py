@@ -1,6 +1,6 @@
 from utils import ACCOUNTS_FILE, WAREHOUSE_FILES
-from state import inventory
 
+inventory = {}  # name: price
 def load_inventory():
     """
     `load_inventory` is a function that loads inventory items and their prices from predefined warehouse files into a global inventory dictionary.
@@ -92,6 +92,6 @@ def find_user(identifier:str) -> list | None:
                       with the given identifier is found.
     """
     for acc in load_accounts():
-        if acc[0] == identifier or acc[1] == identifier:
+        if acc[0] == identifier.title() or acc[1] == identifier:
             return acc
     return None
