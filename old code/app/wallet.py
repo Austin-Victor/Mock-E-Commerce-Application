@@ -1,4 +1,4 @@
-from data import load_accounts, save_accounts
+from app.data import load_accounts, save_accounts
 
 def fund_wallet(user: list) -> None:
     """

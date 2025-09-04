@@ -1,5 +1,5 @@
-import utils
-import data
+import utilities.utils as utils
+import app.data as data
 import bcrypt
 
 def sign_up() -> None:

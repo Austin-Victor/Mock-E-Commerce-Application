@@ -1,6 +1,6 @@
 import bcrypt
-from data import load_accounts, save_accounts
-from utils import password_valid
+from app import data
+from utilities.utils import password_valid
 
 def delete_account(user:list) -> bool:
     """
@@ -21,9 +21,9 @@ def delete_account(user:list) -> bool:
     """
     confirm = input("Are you sure you want to delete your account? (y/n): ").lower()
     if confirm == 'y':
-        accounts = load_accounts()
+        accounts = data.load_accounts()
         accounts = [acc for acc in accounts if acc[0] != user[0]]
-        save_accounts(accounts)
+        data.save_accounts(accounts)
         print("Account deleted successfully.")
         return True
     print("Account deletion cancelled.")
@@ -66,9 +66,9 @@ def change_password(user:list) -> None:
 
     hashed = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    accounts = load_accounts()
+    accounts = data.load_accounts()
     for acc in accounts:
         if acc[0] == user[0]:
             acc[2] = hashed
-    save_accounts(accounts)
+    data.save_accounts(accounts)
     print("Password changed successfully.")

@@ -1,4 +1,4 @@
-from utils import ACCOUNTS_FILE, WAREHOUSE_FILES
+from utilities.utils import ACCOUNTS_FILE, WAREHOUSE_FILES
 
 inventory = {}  # name: price
 def load_inventory():

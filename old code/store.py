@@ -1,5 +1,5 @@
 import re
-import data as d
+import app.data as d
 import time
 
 cart = []
