@@ -1,7 +1,36 @@
 import customtkinter as ctk
 from tkinter import messagebox
-from core import credential_manager as cm
-from core.user import User
+from logic import credential_manager as cm
+from logic.user import User
+
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+root = ctk.CTk()
+
+app_width = 600
+app_height = 600
+
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+x = int((screen_width/2) - (app_width/2))
+y = int((screen_height/2) - (app_height/2))
+
+root.title("E-commerce App")
+root.geometry(f"{app_width}x{app_height}+{x}+{y}")
+root.resizable(False, False)
+
+tabview = ctk.CTkTabview(root, width=550, height=450, corner_radius=15)
+tabview.pack(pady=30, padx=30, fill="both", expand=True)
+
+sign_in_tab = tabview.add("Sign In")
+sign_up_tab = tabview.add("Register")
+
+signup_frame =ctk.CTkFrame(sign_up_tab, corner_radius=10)
+signup_frame.pack(pady=20, padx=20, fill="both", expand=True)
+
+signin_frame =ctk.CTkFrame(sign_in_tab, corner_radius=10)
+signin_frame.pack(pady=20, padx=20, fill="both", expand=True)
 
 def sumbit_signup():
     
@@ -53,46 +82,62 @@ def sumbit_signup():
                 messagebox.showinfo("Success", "Account created successfully")
                 messagebox.showinfo("Account Details", f"Account Name: {response[1]} {response[2]}\n\nEmail: {response[3]}\n\nAccount Number: {response[4]}")
         else:
-            messagebox.showerror("Error", f"Problem with {response.split(".")[1]}")
+            signup_label.configure(text=f"Problem with {response.split(".")[1]}", text_color="red", font=("Arial", 15))
 
 def submit_signin():
-    account_num = entry_claimed_id.get()
-    pw = entry_claimed_password.get()
-
-        
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("green")
-
-root = ctk.CTk()
-root.title("E-commerce App")
-root.geometry("500x500")
-root.resizable(False, False)
-
-signup_frame =ctk.CTkFrame(root, width= 400, height= 400)
-signup_frame.pack(expand = True)
-
-signin_frame =ctk.CTkFrame(root, width= 400, height= 400)
-signin_frame.pack(expand = True)
     
-entry_firstname = ctk.CTkEntry(signup_frame, placeholder_text = "First name", width = 360, height= 36)
-entry_lastname = ctk.CTkEntry(signup_frame, placeholder_text = "Last name",  width = 360, height= 36)
-entry_email = ctk.CTkEntry(signup_frame, placeholder_text = "Email address", width = 360, height= 36)
-entry_password = ctk.CTkEntry(signup_frame, placeholder_text = "Password", show = "*", width = 360, height= 36)
-entry_confirm_pw = ctk.CTkEntry(signup_frame, placeholder_text = "Confirm Password", show = "*", width = 360, height= 36)
-submit_btn = ctk.CTkButton(signup_frame, text = "Sign up", command = sumbit_signup, width= 76)
+    account_num = entry_claimed_id.get()
+    pw = signin_password.get()
+    
+    if not account_num or not pw:
+        signin_label.configure(text = "All fields are required", text_color="red", font=("Arial", 15))
+        return
+        
+    response = User.sign_in(account_num, pw)
+    if response == False:
+        signin_label.configure(text=f"Account does not exist", text_color="red", font=("Arial", 15))
+    elif response == "Invalid password":
+        signin_label.configure(text=f"{response}", text_color="red", font=("Arial", 15))
+    elif response == True:
+        current_user = User.get_current_user()
+        messagebox.showinfo("", f"Login successful! \nWelcome {current_user.f_name} {current_user.l_name}")
+    else:
+        messagebox.showerror("", response)
 
-entry_claimed_id = ctk.CTkEntry(signin_frame, placeholder_text = "Account number or Email address", width = 360, height= 36)
-entry_claimed_password = ctk.CTkEntry(signin_frame, placeholder_text = "Password", show = "*", width = 360, height= 36)
-submit_btn = ctk.CTkButton(signin_frame, text = "Sign in", command = submit_signin, width= 76)
+signup_label = ctk.CTkLabel(signup_frame, text="Create Account", font=("Arial", 20, "bold"))
+signup_label.pack(pady=10)
 
+entry_firstname = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "First name")
 entry_firstname.pack(pady = 10)
-entry_lastname.pack(pady = 10)
-entry_email.pack(pady = 10)
-entry_password.pack(pady = 10)
-entry_confirm_pw.pack(pady = 10)
-submit_btn.pack(pady = 10)
 
-entry_claimed_id.pack(pady = 10)
-entry_claimed_password.pack(pady = 10)
+entry_lastname = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Last name")
+entry_lastname.pack(pady = 10)
+
+entry_email = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Email address")
+entry_email.pack(pady = 10)
+
+entry_password = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Password", show = "*")
+entry_password.pack(pady = 10)
+
+entry_confirm_pw = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Confirm Password", show = "*")
+entry_confirm_pw.pack(pady = 10)
+
+signup_btn = ctk.CTkButton(signup_frame, text = "Sign up", width=200, height=40, corner_radius=12, command = sumbit_signup)
+signup_btn.pack(pady = 15)
+
+signin_label = ctk.CTkLabel(signin_frame, text="Welcome Back!", font=("Arial", 20, "bold"))
+signin_label.pack(pady=20)
+
+entry_claimed_id = ctk.CTkEntry(signin_frame, width=300, height= 40, placeholder_text="Account number or Email")
+entry_claimed_id.pack(pady=10)
+
+signin_password = ctk.CTkEntry(signin_frame, width=300, height= 40, placeholder_text="Password", show="*")
+signin_password.pack(pady=10)
+
+remember_me = ctk.CTkCheckBox(signin_frame, text="Remember Me")
+remember_me.pack(pady=5)
+
+signin_button = ctk.CTkButton(signin_frame, text="Sign In", width=200, height=40, corner_radius=12, command=submit_signin)
+signin_button.pack(pady=20)
 
 root.mainloop()

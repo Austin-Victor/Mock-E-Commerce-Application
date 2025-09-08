@@ -1,4 +1,4 @@
-from core import database_manager as dbm
+from logic import database_manager as dbm
 import random
 import bcrypt
 #import utils
@@ -94,19 +94,19 @@ class User:
         
         acc_details: tuple = dbm.value_exists(account_number, "account_number", dbm.USERS)
         if acc_details:
-            hashed_pw = bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt())
-            if hashed_pw == acc_details[5].encode():
-                return cls(
-                    acc_details[1],
-                    acc_details[2],
-                    acc_details[3],
-                    acc_details[4],
-                    acc_details[5],
-                    acc_details[6],
-                    acc_details[7]
-            )
+            if bcrypt.checkpw(pw.encode(), acc_details[5].encode()):
+                cls._current_user = cls(
+                                        acc_details[1],
+                                        acc_details[2], acc_details[3],
+                                        acc_details[4], acc_details[5],
+                                        acc_details[6], acc_details[7]
+                                        )
+                return True
             else:
-                print("Invalid password")
-                return False
+                return "Invalid password"
         else:
             return False
+        
+    @classmethod
+    def get_current_user(cls):
+        return cls._current_user
