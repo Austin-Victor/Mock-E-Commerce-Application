@@ -1,7 +1,6 @@
 from logic import database_manager as dbm
 import random
 import bcrypt
-#import utils
 
 class User:
     """
@@ -58,7 +57,7 @@ class User:
         while True:
             account_num = "".join([str(random.randint(0, 9)) for _ in range(10)])
             
-            if dbm.value_exists(account_num, "account_number", dbm.USERS):
+            if dbm.user_exists(account_num):
                 continue
             else:
                 break
@@ -67,7 +66,7 @@ class User:
         return dbm.appendto_usersdb(f_name.title(), l_name.title(), account_num, email, hashed_pw)
     
     @classmethod
-    def sign_in(cls, account_number: str, pw: str) -> object|bool:
+    def sign_in(cls, id: str, pw: str) -> object|bool:
         
         """
         `sign_in` is a function that authenticates a user by verifying their account number and password.
@@ -92,7 +91,7 @@ class User:
                 Returns `False` if the account is not found or the password is incorrect.
         """
         
-        acc_details: tuple = dbm.value_exists(account_number, "account_number", dbm.USERS)
+        acc_details: tuple = dbm.user_exists(id)
         if acc_details:
             if bcrypt.checkpw(pw.encode(), acc_details[5].encode()):
                 cls._current_user = cls(
@@ -110,3 +109,41 @@ class User:
     @classmethod
     def get_current_user(cls):
         return cls._current_user
+    
+    def deposit(self, amount: float, password: str):
+        
+        if bcrypt.checkpw(password.encode(), self.password.encode()):
+            try:
+                if amount < 5 or amount > 5000000:
+                    return False
+                else:
+                    task = dbm.modify_user(self.account_num, "account_bal", self.account_balance + amount)
+                    if task == True:
+                        self.account_balance = self.account_balance + amount
+                        return task
+                    else:
+                        return task
+                
+            except Exception as e:
+                return f"Error depositing: {e}"
+        else:
+            return "Invalid password"
+    
+    def withdraw(self, amount: float, password: str):
+        
+        if bcrypt.checkpw(password.encode(), self.password.encode()):
+            try:
+                if amount < 10 or amount > 5000000:
+                    return False
+                else:
+                    task = dbm.modify_user(self.account_num, "account_bal", self.account_balance - amount)
+                    if task == True:
+                        self.account_balance = self.account_balance - amount
+                        return task
+                    else:
+                        return task
+                    
+            except Exception as e:
+                return f"Error depositing: {e}"
+        else:
+            return "Invalid password"

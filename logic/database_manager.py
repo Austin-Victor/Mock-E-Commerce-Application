@@ -130,10 +130,25 @@ def appendto_usersdb(f_name: str, l_name: str, account_num: str, email: str, pas
         conn.close()
         return f"{True},{f_name},{l_name},{email},{account_num}"
     
-def update_row(id, column, db_path):
+def modify_user(id, column, new_value):
     
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(USERS)
     cursor = conn.cursor()
+    
+    try:
+        cursor.execute(f"""
+                       UPDATE users
+                       SET {column} = ?
+                       WHERE account_number = ?
+                       """, (new_value, id))
+    except sqlite3.IntegrityError as e:
+        return e.args[0].split(":")[1].strip()
+    except Exception as e:
+        return e.args[0].split(":")[1].strip()
+    else:
+        conn.commit()
+        conn.close()
+        return True
     
 def delete_user(account_num: str):
     
@@ -247,7 +262,7 @@ def read_db(db_path: str) -> list|bool:
     conn.close()
     return rows
 
-def value_exists(value, column, db_path):
+def user_exists(id):
     
     """
     Check if a value exists in a given column of a database table.
@@ -267,10 +282,10 @@ def value_exists(value, column, db_path):
             - tuple: The first row found where the column matches the value.
             - None: If no row matches.
     """
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(USERS)
     cursor = conn.cursor()
     
-    cursor.execute(f"SELECT * FROM {db_path.replace("databases/", "").replace(".db", "")} WHERE {column} = ?", (value,))
+    cursor.execute(f"SELECT * FROM users WHERE account_number = ? OR email = ?", (id,id))
     result = cursor.fetchone()
     return result
 
@@ -278,5 +293,5 @@ def value_exists(value, column, db_path):
 #print(appendto_usersdb("Victor", "Austine", "0000000000", "joyaustie454@gmail.com", "0000000", 50000))
 # print(type(value_exists("0000000000", "account_number", USERS)))
 # add_to_warehouse("Fish", 8)
-# delete_user("7756308072")
+# delete_user("1969316526")
 # read_db(USERS)

@@ -2,142 +2,104 @@ import customtkinter as ctk
 from tkinter import messagebox
 from logic import credential_manager as cm
 from logic.user import User
+from gui.theme import PRIMARY_COLOR, ACCENT_COLOR, TEXT_COLOR, SECONDARY_TEXT
 
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
+class OnboardingFrame(ctk.CTkFrame):
+    def __init__(self, master, switch_to_dashboard, **kwargs):
+        super().__init__(master, **kwargs)
+        self.configure(fg_color=PRIMARY_COLOR)
 
-root = ctk.CTk()
+        self.switch_to_dashboard = switch_to_dashboard
 
-app_width = 600
-app_height = 600
+        # Tabview (Sign In / Sign Up)
+        self.tabs = ctk.CTkTabview(self, corner_radius=20)
+        self.tabs.pack(expand=True, fill="both", padx=40, pady=40)
 
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-x = int((screen_width/2) - (app_width/2))
-y = int((screen_height/2) - (app_height/2))
+        self.signin_tab = self.tabs.add("Sign In")
+        self.signup_tab = self.tabs.add("Sign Up")
 
-root.title("E-commerce App")
-root.geometry(f"{app_width}x{app_height}+{x}+{y}")
-root.resizable(False, False)
+        self.build_signin()
+        self.build_signup()
 
-tabview = ctk.CTkTabview(root, width=550, height=450, corner_radius=15)
-tabview.pack(pady=30, padx=30, fill="both", expand=True)
+    def build_signin(self):
+        signin_label = ctk.CTkLabel(self.signin_tab, text="Welcome Back", 
+                     font=("SF Pro Display", 20, "bold"), text_color=TEXT_COLOR)
+        signin_label.pack(pady=20)
 
-sign_in_tab = tabview.add("Sign In")
-sign_up_tab = tabview.add("Register")
+        self.signin_id = ctk.CTkEntry(self.signin_tab, width=300, height= 40, placeholder_text="Account number or Email")
+        self.signin_id.pack(pady=10, padx=60, fill="x")
 
-signup_frame =ctk.CTkFrame(sign_up_tab, corner_radius=10)
-signup_frame.pack(pady=20, padx=20, fill="both", expand=True)
-
-signin_frame =ctk.CTkFrame(sign_in_tab, corner_radius=10)
-signin_frame.pack(pady=20, padx=20, fill="both", expand=True)
-
-def sumbit_signup():
-    
-    """
-    `sign_up` is a function that registers a new user account by collecting username, email, and password.
-
-    This function prompts the user to enter a desired username and email.
-    It first checks if the entered username or email already exists in the
-    system using `find_user()`. If either exists, an error message is displayed,
-    and the sign-up process is aborted, going back to previous prompt.
-
-    The user then has the option to either have a strong password automatically
-    generated using `generate_password()` or to manually enter a password.
-    If a manual password is chosen, it is validated against complexity rules
-    using `password_valid()` until a valid one is provided. The password is then hashed using bcrypt.
-
-    Upon successful collection of valid credentials, the new account (username,
-    email, password, and an initial balance of 0.00) is appended to the
-    `data/accounts.txt` file.
-
-    Args:
-        None: This function interacts directly with the user via input/print
-              and writes to a file.
-
-    Returns:
-        None: This function does not return any value. It either creates an
-              account or prints an error message.
-    """
-    
-    f_name = entry_firstname.get()
-    l_name = entry_lastname.get()
-    email = entry_email.get()
-    password = entry_password.get()
-    cnfrm = entry_confirm_pw.get()
-    
-    if not f_name or not l_name or not email or not password or not cnfrm:
-        messagebox.showerror("Error", "All fields are required")
-        return
-    elif not cm.pw_is_valid(password):
-        messagebox.showwarning("Weak password", "Password must be at least 8 in length, contain an uppercase, a lowercase, a number, and a symbol")
-    elif not cm.is_match(password, cnfrm):
-        messagebox.showerror("Error", "Passwords do not match")
-        return
-    else:
-        response = User.sign_up(f_name, l_name, email, password)
-        if response.__contains__(","):
-            response = response.split(",")
-            if response[0] == "True":
-                messagebox.showinfo("Success", "Account created successfully")
-                messagebox.showinfo("Account Details", f"Account Name: {response[1]} {response[2]}\n\nEmail: {response[3]}\n\nAccount Number: {response[4]}")
-        else:
-            signup_label.configure(text=f"Problem with {response.split(".")[1]}", text_color="red", font=("Arial", 15))
-
-def submit_signin():
-    
-    account_num = entry_claimed_id.get()
-    pw = signin_password.get()
-    
-    if not account_num or not pw:
-        signin_label.configure(text = "All fields are required", text_color="red", font=("Arial", 15))
-        return
+        self.signin_password = ctk.CTkEntry(self.signin_tab, width=300, height= 40, placeholder_text="Password", show="*")
+        self.signin_password.pack(pady=10, padx=60, fill="x")
         
-    response = User.sign_in(account_num, pw)
-    if response == False:
-        signin_label.configure(text=f"Account does not exist", text_color="red", font=("Arial", 15))
-    elif response == "Invalid password":
-        signin_label.configure(text=f"{response}", text_color="red", font=("Arial", 15))
-    elif response == True:
-        current_user = User.get_current_user()
-        messagebox.showinfo("", f"Login successful! \nWelcome {current_user.f_name} {current_user.l_name}")
-    else:
-        messagebox.showerror("", response)
+        self.remember_me = ctk.CTkCheckBox(self.signin_tab, text="Remember Me")
+        self.remember_me.pack(pady=5)
 
-signup_label = ctk.CTkLabel(signup_frame, text="Create Account", font=("Arial", 20, "bold"))
-signup_label.pack(pady=10)
+        ctk.CTkButton(self.signin_tab, text="Sign In", width=200, height=40, corner_radius=12,
+                      fg_color=ACCENT_COLOR, command=self.handle_signin).pack(pady=30)
 
-entry_firstname = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "First name")
-entry_firstname.pack(pady = 10)
+    def build_signup(self):
+        ctk.CTkLabel(self.signup_tab, text="Create Account", 
+                     font=("SF Pro Display", 20, "bold"), text_color=TEXT_COLOR).pack(pady=10)
 
-entry_lastname = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Last name")
-entry_lastname.pack(pady = 10)
+        self.signup_firstname = ctk.CTkEntry(self.signup_tab, width=300, height= 40, placeholder_text = "First name")
+        self.signup_firstname.pack(pady=10, padx=60, fill="x")
+        
+        self.signup_lastname = ctk.CTkEntry(self.signup_tab, width=300, height= 40, placeholder_text = "Last name")
+        self.signup_lastname.pack(pady=10, padx=60, fill="x")
 
-entry_email = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Email address")
-entry_email.pack(pady = 10)
+        self.signup_email = ctk.CTkEntry(self.signup_tab, width=300, height= 40, placeholder_text="Email")
+        self.signup_email.pack(pady=10, padx=60, fill="x")
 
-entry_password = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Password", show = "*")
-entry_password.pack(pady = 10)
+        self.signup_password = ctk.CTkEntry(self.signup_tab, width=300, height= 40, placeholder_text="Password", show="*")
+        self.signup_password.pack(pady=10, padx=60, fill="x")
+        
+        self.signup_confirm_password = ctk.CTkEntry(self.signup_tab, width=300, height= 40, placeholder_text="Confirm Password", show="*")
+        self.signup_confirm_password.pack(pady=10, padx=60, fill="x")
 
-entry_confirm_pw = ctk.CTkEntry(signup_frame, width=300, height= 40, placeholder_text = "Confirm Password", show = "*")
-entry_confirm_pw.pack(pady = 10)
+        ctk.CTkButton(self.signup_tab, text="Sign Up", width=200, height=40, corner_radius=12,
+                      fg_color=ACCENT_COLOR, command=self.handle_signup).pack(pady=10)
 
-signup_btn = ctk.CTkButton(signup_frame, text = "Sign up", width=200, height=40, corner_radius=12, command = sumbit_signup)
-signup_btn.pack(pady = 15)
+    def handle_signin(self):
+        id = self.signin_id.get().strip()
+        pw = self.signin_password.get()
 
-signin_label = ctk.CTkLabel(signin_frame, text="Welcome Back!", font=("Arial", 20, "bold"))
-signin_label.pack(pady=20)
+        if not id or not pw:
+            messagebox.showerror("Error", "All fields are required")
+            return
+        
+        response = User.sign_in(id, pw)
+        if response == False:
+            messagebox.showerror("Error", "Account does not exist")
+        elif response == "Invalid password":
+            messagebox.showerror("Error", f"{response}")
+        elif response == True:
+            current_user = User.get_current_user()
+            self.switch_to_dashboard(f"{current_user.f_name} {current_user.l_name}", current_user.account_num, current_user.account_balance)
+        else:
+            messagebox.showerror("", response)
 
-entry_claimed_id = ctk.CTkEntry(signin_frame, width=300, height= 40, placeholder_text="Account number or Email")
-entry_claimed_id.pack(pady=10)
-
-signin_password = ctk.CTkEntry(signin_frame, width=300, height= 40, placeholder_text="Password", show="*")
-signin_password.pack(pady=10)
-
-remember_me = ctk.CTkCheckBox(signin_frame, text="Remember Me")
-remember_me.pack(pady=5)
-
-signin_button = ctk.CTkButton(signin_frame, text="Sign In", width=200, height=40, corner_radius=12, command=submit_signin)
-signin_button.pack(pady=20)
-
-root.mainloop()
+    def handle_signup(self):
+        
+        f_name = self.signup_firstname.get().strip()
+        l_name = self.signup_lastname.get().strip()
+        email = self.signup_email.get().strip()
+        password = self.signup_password.get()
+        cnfrm = self.signup_confirm_password.get()
+        
+        if not f_name or not l_name or not email or not password or not cnfrm:
+            messagebox.showerror("Error", "All fields are required")
+            return
+        elif not cm.pw_is_valid(password):
+            messagebox.showwarning("Weak password", "Password must be at least 8 in length, contain an uppercase, a lowercase, a number, and a symbol")
+        elif not cm.is_match(password, cnfrm):
+            messagebox.showerror("Error", "Passwords do not match")
+            return
+        else:
+            response = User.sign_up(f_name, l_name, email, password)
+            if response.__contains__(","):
+                response = response.split(",")
+                if response[0] == "True":
+                    messagebox.showinfo("Success", "Account created successfully")
+            else:
+                messagebox.showerror("Error", f"Problem with {response.split(".")[1]}")
